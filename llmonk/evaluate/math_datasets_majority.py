@@ -46,12 +46,17 @@ def is_correct_gsm8k(model_completion, gt_example):
     return extract_answer_gsm8k(model_completion) == gt_answer
 
 
+# def is_correct_minerva(og_pred, gt):
+#     pred = normalize_final_answer(get_unnormalized_answer(og_pred))
+#     gt = normalize_final_answer(remove_boxed(last_boxed_only_string(gt)))
+#     # print(f'gt: {gt}')
+#     return is_equiv(pred, gt)
+
 def is_correct_minerva(og_pred, gt):
-    pred = normalize_final_answer(get_unnormalized_answer(og_pred))
-    # print(f'pred: {pred}')
+    # pred = normalize_final_answer(get_unnormalized_answer(og_pred))
     gt = normalize_final_answer(remove_boxed(last_boxed_only_string(gt)))
     # print(f'gt: {gt}')
-    return is_equiv(pred, gt)
+    return is_equiv(og_pred, gt)
 
 
 class ScriptConfig(EvaluateScriptConfig):
@@ -73,12 +78,12 @@ def process_sample(config: ScriptConfig):
 
     result = load_yaml(config.sample_path)
     corrects = []
-    print(f'len(result["samples"]): {len(result["samples"])}')
+    # print(f'len(result["samples"]): {len(result["samples"])}')
 
-    for sample in result["samples"]:
-        correct = is_correct(sample, result["gt_answer"], config.dset)
-        # print(f'correct: {correct}')
-        corrects.append(correct)
+    majority_sample = result["majority_sample"]
+    correct = is_correct(majority_sample, result["gt_answer"], config.dset)
+    # print(f'correct: {correct}')
+    corrects.append(correct)
 
     result["is_corrects"] = corrects
 

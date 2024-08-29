@@ -1,7 +1,7 @@
 import unittest
 from datasets import load_dataset
 from tqdm import tqdm
-from llmonk.evaluate.math_datasets import is_correct as evaluate_correctness
+from Downloads.large_language_monkeys.llmonk.evaluate.math_majority import is_correct as evaluate_correctness
 import random
 
 

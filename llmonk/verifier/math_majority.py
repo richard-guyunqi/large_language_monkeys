@@ -12,7 +12,7 @@ from lm_eval.tasks.minerva_math.utils import (
     is_equiv,
 )
 
-from llmonk.utils import load_yaml, save_yaml, EvaluateScriptConfig
+from llmonk.utils import load_yaml, save_yaml, EvaluateScriptConfig, MajorityScriptConfig
 
 
 ANS_RE_GSM8k = re.compile(r"#### (\-?[\$0-9\.\,]+)")
@@ -53,8 +53,11 @@ def is_correct_minerva(og_pred, gt):
     # print(f'gt: {gt}')
     return is_equiv(pred, gt)
 
+def derive_pred(og_pred):
+    pred = normalize_final_answer(get_unnormalized_answer(og_pred))
+    return pred
 
-class ScriptConfig(EvaluateScriptConfig):
+class ScriptConfig(MajorityScriptConfig):
     dset: str = "gsm8k"
 
 
@@ -67,20 +70,44 @@ def is_correct(sample: str, gt_answer: str, dset: str):
         raise ValueError(f"Dataset {dset} not supported")
 
 
+# def process_sample(config: ScriptConfig):
+#     if config.save_path.exists():
+#         return
+
+#     result = load_yaml(config.sample_path)
+#     corrects = []
+#     print(f'len(result["samples"]): {len(result["samples"])}')
+
+#     for sample in result["samples"]:
+#         correct = is_correct(sample, result["gt_answer"], config.dset)
+#         # print(f'correct: {correct}')
+#         corrects.append(correct)
+
+#     result["is_corrects"] = corrects
+
+#     save_yaml(config.save_path, result)
+    
 def process_sample(config: ScriptConfig):
     if config.save_path.exists():
         return
 
     result = load_yaml(config.sample_path)
-    corrects = []
-    print(f'len(result["samples"]): {len(result["samples"])}')
+    votes = {}
+    # print(f'len(result["samples"][:config.majority_range]): {len(result["samples"][:config.majority_range])}')
 
-    for sample in result["samples"]:
-        correct = is_correct(sample, result["gt_answer"], config.dset)
-        # print(f'correct: {correct}')
-        corrects.append(correct)
-
-    result["is_corrects"] = corrects
+    for sample in result["samples"][:config.majority_range]:
+        extracted_answer = derive_pred(sample)
+        if extracted_answer not in votes.keys():
+            votes[extracted_answer] = 0     
+        votes[extracted_answer] += 1
+    
+    votes = dict(sorted(votes.items(), key=lambda item: item[1], reverse=True))
+    for key in votes.keys():    
+        if key not in ['[invalidanswer]', '?', '(Insertyouranswerhere)', '[Insertyouranswerhere]', '??', '', '(Insertyourfinalanswerhere)', '[Insertyouranswerhere.]', '(Insertanswerhere)', '[Insertanswerhere]']:
+            majority_answer = key
+            break
+    # print(f'majority_answer: {majority_answer}')
+    result["majority_sample"] = majority_answer
 
     save_yaml(config.save_path, result)
 
@@ -116,7 +143,7 @@ def main(config: ScriptConfig):
     # tasks also counted by offset, limit, and stride
     tasks = tasks[config.offset : config.limit : config.stride]
 
-    print(f"Evaling on {len(tasks)} problems.")
+    print(f"Taking majority on {len(tasks)} problems.")
 
     if config.num_workers not in [0, None]:
         with multiprocessing.Pool(processes=config.num_workers) as pool:

@@ -66,6 +66,7 @@ def vllm_manager(config: "GenerateScriptConfig"):
     vllm_command = f"""python llmonk/generate/vllm_server.py \
         --model {model} \
         --port {port} \
+        --gpu-memory-utilization 0.95 \
         {args}"""
 
     if gpus is not None:

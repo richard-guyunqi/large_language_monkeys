@@ -81,41 +81,84 @@ def extract_first_code(output_string: str):
 
 
 class GenerateScriptConfig(Config):
+
     model = REQUIRED
     save_dir = REQUIRED
 
-    num_workers = None
-    gpus = None
+    num_workers = 12
+
+########################################################
+    # TODO: 
+    # 1. set offset to the gpu index
+    # 2. Change the dataset in task    
+    offset = REQUIRED
+    gpus = REQUIRED
+    dataset = REQUIRED
+    limit = REQUIRED
+    stride = REQUIRED
+    num_samples = REQUIRED
+    num_prompts = REQUIRED
+    batch_size = REQUIRED
+
+##########################################
+
+
     vllm_args = None
     vllm_port = 8000
 
     seed = 0
-    limit = None
-    offset = None
-    stride = None
 
-    num_few_shot = 2
-    max_tokens = 1024
+    num_few_shot = 5
+    max_tokens = 512
     stop_strings = []
-    num_samples = 2
-    batch_size = 2
+    
     top_p = 0.95
     temperature = 0.6
 
     def finalize(self):
-        self.save_dir = Path(self.save_dir)
-        self.save_dir.mkdir(exist_ok=True, parents=True)
+        self.save_dir = Path(self.save_dir + self.dataset + '_samples_' + str(self.num_prompts))
+        # self.save_dir.mkdir(exist_ok=True, parents=True)
 
 
 class EvaluateScriptConfig(Config):
     samples_dir: Path = REQUIRED
     save_dir: Path = REQUIRED
 
-    num_workers: int = 1
+    num_workers: int = 12
 
-    offset: int = 0
-    stride: int = 1
-    limit: int = 100_000
+########################################################
+    # TODO: 
+    # 1. set offset
+    # 2. Change the dataset in task    
+
+    offset: int = REQUIRED
+    stride: int = REQUIRED
+    limit: int = REQUIRED
+########################################################
+    
+
+    def finalize(self):
+        self.samples_dir = Path(self.samples_dir)
+        self.save_dir = Path(self.save_dir)
+        self.save_dir.mkdir(exist_ok=True, parents=True)
+
+class MajorityScriptConfig(Config):
+    samples_dir: Path = REQUIRED
+    save_dir: Path = REQUIRED
+
+    num_workers: int = 12
+
+########################################################
+    # TODO: 
+    # 1. set offset
+    # 2. Change the dataset in task    
+
+    offset: int = REQUIRED
+    stride: int = REQUIRED
+    limit: int = REQUIRED
+    majority_range: int = REQUIRED
+########################################################
+    
 
     def finalize(self):
         self.samples_dir = Path(self.samples_dir)
