@@ -102,10 +102,14 @@ def process_sample(config: ScriptConfig):
         votes[extracted_answer] += 1
     
     votes = dict(sorted(votes.items(), key=lambda item: item[1], reverse=True))
+    # print(f'votes: {votes}')
+    majority_answer = ''
     for key in votes.keys():    
         if key not in ['[invalidanswer]', '?', '(Insertyouranswerhere)', '[Insertyouranswerhere]', '??', '', '(Insertyourfinalanswerhere)', '[Insertyouranswerhere.]', '(Insertanswerhere)', '[Insertanswerhere]']:
             majority_answer = key
             break
+    if majority_answer == '':
+        majority_answer = list(votes.keys())[0]
     # print(f'majority_answer: {majority_answer}')
     result["majority_sample"] = majority_answer
 
