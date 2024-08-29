@@ -1,3 +1,14 @@
+## Guidance for our implementation
+For multiple-prompts: 
+  1. Generate samples from prompt with 
+     ```
+     bash generate.sh
+     ```
+     where the paramters such as num_prompts are set in generate.sh.
+  2. Take the majority votes result and draw the graph: use llmonk/evaluate/evaluate_results.ipynb. 
+
+
+
 # Large Language Monkeys
 
 This repository provides the accompanying code for [Large Language Monkeys: Scaling Inference Compute with Repeated Sampling](https://arxiv.org/abs/2407.21787).
