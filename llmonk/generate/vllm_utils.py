@@ -9,6 +9,11 @@ import os
 if TYPE_CHECKING:
     from llmonk.utils import GenerateScriptConfig
 
+# Define your custom cache directory here
+custom_cache_dir = "/orion/u/yrichard/large_language_monkeys/cache"
+os.environ['HF_HOME'] = custom_cache_dir
+
+
 
 def gpus_to_cvd(gpus: list[int]):
     return "CUDA_VISIBLE_DEVICES=" + ",".join([str(x) for x in gpus])

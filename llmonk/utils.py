@@ -85,7 +85,7 @@ class GenerateScriptConfig(Config):
     model = REQUIRED
     save_dir = REQUIRED
 
-    num_workers = 12
+    num_workers = 6
 
 ########################################################
     # TODO: 
@@ -99,6 +99,8 @@ class GenerateScriptConfig(Config):
     num_samples = REQUIRED
     num_prompts = REQUIRED
     batch_size = REQUIRED
+    max_tokens = REQUIRED
+
 
 ##########################################
 
@@ -109,7 +111,6 @@ class GenerateScriptConfig(Config):
     seed = 0
 
     num_few_shot = 5
-    max_tokens = 512
     stop_strings = []
     
     top_p = 0.95
@@ -124,7 +125,7 @@ class EvaluateScriptConfig(Config):
     samples_dir: Path = REQUIRED
     save_dir: Path = REQUIRED
 
-    num_workers: int = 12
+    num_workers: int = 32
 
 ########################################################
     # TODO: 
@@ -146,7 +147,7 @@ class MajorityScriptConfig(Config):
     samples_dir: Path = REQUIRED
     save_dir: Path = REQUIRED
 
-    num_workers: int = 12
+    num_workers: int = 32
 
 ########################################################
     # TODO: 

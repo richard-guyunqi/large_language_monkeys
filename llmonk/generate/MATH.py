@@ -5,49 +5,54 @@ import pydra
 import multiprocessing
 import random
 import requests
+import os
 import json
 from functools import partial
 
-from llmonk.generate.prompts import MATH_COT_PROMPT
+# from llmonk.generate.prompts import MATH_COT_PROMPT
+
+# Prompt 2.0
+from llmonk.generate.prompts import MATH_COT_PROMPT, RETURNPROMPT
 from llmonk.utils import save_yaml, GenerateScriptConfig
 from llmonk.generate.vllm_utils import vllm_manager
 from openai import OpenAI
 
+# Define your custom cache directory here
+custom_cache_dir = "/orion/u/yrichard/large_language_monkeys/cache"
+os.environ['HF_HOME'] = custom_cache_dir
+
 def sample_prompts(prompt, num_prompts):
     prompts = []
+    prompts.append(prompt)
 
-    if num_prompts == 1:
-        prompts.append(prompt)
-    else:
-        ## Set the API key
-        with open('/home/richard/Downloads/blender/BlenderAlchemy/config/openai_apikey.txt', 'r') as file:
-            api_key = file.read().strip()
-        
-        ## Set the API key
-        client = OpenAI(api_key=api_key)
-        MODEL='gpt-4o'
-
-        while len(prompts) < num_prompts:
-            try:
-                completion = client.chat.completions.create(
-                    model=MODEL,
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant that understands a prompt and can re-write it."},
-                        {"role": "user", "content": 
-                        f'''Paraphrase and re-write the following paragraph by SWAPPING SYNONYM. DO NOT LOSE ANY INFORMATION of it. Paragraph starts here:   
-                        {prompt}
-                        
-                        '''}
-                    ]
-                )
-                response = completion.choices[0].message.content
-                prompts.append(response)
-            except Exception as e:
-                print(f'Error: {e}')
-                continue
+    ## Set the API key
+    with open('/orion/u/yrichard/blender/BlenderAlchemy/config/openai_apikey.txt', 'r') as file:
+        api_key = file.read().strip()
     
-    with open('/home/richard/Downloads/large_language_monkeys/temporary.json', 'w') as file:
-        json.dump(prompts, file, indent=4)
+    ## Set the API key
+    client = OpenAI(api_key=api_key)
+    MODEL='gpt-4o'
+
+    while len(prompts) < num_prompts:
+        print('Generating')
+        try:
+            completion = client.chat.completions.create(
+                model=MODEL,
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that understands a prompt and can re-write it."},
+                    {"role": "user", "content": 
+                    f'''Re-write the following paragraph by SWAPPING SYNONYM. DO NOT LOSE ANY INFORMATION of it. RETURN THE RE_WRITTEN CONTENT ONLY. Paragraph starts here:   
+                    {prompt}
+                    RETURN THE RE_WRITTEN CONTENT ONLY. Nothing else.
+                    '''}
+                ]
+            )
+            response = completion.choices[0].message.content
+            prompts.append(response)
+        except Exception as e:
+            print(f'Error: {e}')
+            continue
+
     return prompts
 
 
@@ -59,10 +64,24 @@ def run_inference(item, config: GenerateScriptConfig):
     if outpath.exists():
         return
 
-    # Generate prompt
     num_prompts = config.num_prompts
-    base_prompt = MATH_COT_PROMPT + f"\n\nProblem:\n{item['problem']}\n\nSolution:"
+
+    # TODO: select prompt version
+    # Prompt 1.0
+    # base_prompt = MATH_COT_PROMPT + f"\n\nProblem:\n{item['problem']}\n\nSolution:"
+
+    # Prompt 2.0: few-shot example deleted, return formatting added
+    base_prompt = MATH_COT_PROMPT + f"\n\nProblem:\n{item['problem']}\n\n" + RETURNPROMPT
     prompts = sample_prompts(base_prompt, num_prompts)
+
+    # Prompt 3.0: few-shot exaple added back, return formatting added. Few-shot examples not synonymized.
+    # base_prompt = f"Solve the following problem. \n\nProblem:\n{item['problem']}\n\n NOTE THAT at the end of the process, mark the final answer as Final Answer: (the final_answer)."
+    # prompts = sample_prompts(base_prompt, num_prompts)        # Synonymize the current problem before adding few-shot examples
+    # prompts = ['You are a extremely knowledged helper for human on math problems.' + MATH_COT_PROMPT + prompt for prompt in prompts]
+
+    # Very last prompts are saved in temporary.json
+    with open('temporary.json', 'w') as file:
+        json.dump(prompts, file, indent=4)
 
     # DEBUG:
 
@@ -117,12 +136,12 @@ def main(
 # cases only 
     test_dataset = list(
         load_dataset(
-            "hendrycks/competition_math", "main", split="test", trust_remote_code=True
+            "hendrycks/competition_math", "main", split="test", trust_remote_code=True, cache_dir='/orion/u/yrichard/large_language_monkeys/data'
         )
     )
     train_dataset = list(
         load_dataset(
-            "hendrycks/competition_math", "main", split="train", trust_remote_code=True
+            "hendrycks/competition_math", "main", split="train", trust_remote_code=True, cache_dir='/orion/u/yrichard/large_language_monkeys/data'
         )
     )
 
