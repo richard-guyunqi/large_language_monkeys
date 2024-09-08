@@ -1,11 +1,50 @@
-## Guidance for our implementation
-For multiple-prompts: 
-  1. Generate samples from prompt with 
-     ```
-     bash generate.sh
-     ```
-     where the paramters such as num_prompts are set in generate.sh.
-  2. Take the majority votes result and draw the graph: use llmonk/evaluate/evaluate_results.ipynb. 
+# Usage
+## Generation
+First, you could pick the prompt version following the TODO in llmonk/generate/prompts.py and llmonk/generate/MATH.py. All you need to do is to comment out the code for other versions.
+
+Then, use the starting code shown below:
+```
+python starters/generate.py --gpu_device [gpu_index, starting from 0]
+```
+All parameters, such as num_samples, num_prompts, total_gpus are set in starters/generate.py.
+
+## Majority Pipeline
+### Run majority votes
+First, we take majority among different ranges by setting parameters in starters/take_majorities.py and running 
+```
+python starters/take_majorities.py
+```
+The input is the result from generation, and the output is the majority vote result for different ranges.
+### Evaluate majority results
+We evaluate the majority results by setting parameters in starters/evaluate_majority.py and running 
+```
+python starters/evaluate_majority.py
+```
+The input is the majority results, and the output is an evaluation of each of them (correct/incorrect).
+
+### Compute majority scores
+We compute majority scores by counting how many majority vote results are correct by setting parameters in starters/majority_compute.py and running 
+```
+python starters/majority_compute.py
+```
+
+## Coverage pipeline
+### Evaluate coverage
+Coverage results are evaluated by examining all samples of a problem. You can modify the parameters in starter/evaluate_coverage.py to align with generation.
+```
+python starters/evaluate_coverage.py
+```
+The input is the samples, and the output is whether a problem contains a correct sample.
+
+### Compute coverage scores
+Coverage scores are computed by calculating the percentage of problems that contain a correct sample.
+```
+python starters/coverage_compute.py
+```
+
+## Visualization
+The default coverage scores are saved to results/, and majority scores are saved to majorities/. If that is unchanged, you can follow the TODO in starters/visuzation.ipynb and run all the cells sequentially to get the visualized graphs.
+
 
 
 

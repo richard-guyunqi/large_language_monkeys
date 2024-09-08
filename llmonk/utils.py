@@ -118,7 +118,7 @@ class GenerateScriptConfig(Config):
 
     def finalize(self):
         self.save_dir = Path(self.save_dir + self.dataset + '_samples_' + str(self.num_prompts))
-        # self.save_dir.mkdir(exist_ok=True, parents=True)
+        self.save_dir.mkdir(exist_ok=True, parents=True)
 
 
 class EvaluateScriptConfig(Config):
