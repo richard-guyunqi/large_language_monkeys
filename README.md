@@ -1,4 +1,6 @@
 # Usage
+All files you need to run are stored in starters/. Due to dependency issues, make sure you run them under the directory large_language_monkeys/ otherwise errors might occur.
+
 ## Generation
 First, you could pick the prompt version following the TODO in llmonk/generate/prompts.py and llmonk/generate/MATH.py. All you need to do is to comment out the code for other versions.
 
@@ -7,6 +9,8 @@ Then, use the starting code shown below:
 python starters/generate.py --gpu_device [gpu_index, starting from 0]
 ```
 All parameters, such as num_samples, num_prompts, total_gpus are set in starters/generate.py.
+Note that we don't use multi-gpu inference that's slower than dividing the dataset and running on separate gpus. 
+
 
 ## Majority Pipeline
 ### Run majority votes
